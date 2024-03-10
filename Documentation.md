@@ -69,11 +69,14 @@ Before you begin, ensure you have the following software installed on your syste
 
    ```bash
    git clone <repository_url>
+
+
+2. Set the appropriate details on the application.properties file
    
-2. Build the application using Gradle:
+3. Build the application using Gradle:
     ```bash
         gradle build
-3. Run the project 
+4. Run the project 
 
 # SignupLogin API - Docker Setup Guide
 

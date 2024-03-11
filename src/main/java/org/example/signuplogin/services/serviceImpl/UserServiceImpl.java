@@ -1,6 +1,8 @@
 package org.example.signuplogin.services.serviceImpl;
 
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.example.signuplogin.entity.*;
 import org.example.signuplogin.helper.Constants;
 import org.example.signuplogin.helper.Response.LoginResponse;
@@ -23,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
-
+@Slf4j
 @Service()
     public class UserServiceImpl implements UserService {
 
@@ -61,6 +63,7 @@ import java.util.Date;
 
             // Check if user with the same email already exists
             if (userRepository.findByEmail(signupDto.getEmail()) != null) {
+                log.warn("User with email {} already exists. Registration failed.", signupDto.getEmail());
                 return new GeneralResponse(false, "User has Been Already Created");
             }
 
@@ -87,6 +90,7 @@ import java.util.Date;
                 user.setUserId(savedUser.getId());
                 user.setRoleId(adminRole.getId());
                 userRoleRepository.save(user);
+                log.info("New user with email {} registered as Admin.", savedUser.getEmail());
                 return new GeneralResponse(true, "New User Created");
 
             }
@@ -102,6 +106,7 @@ import java.util.Date;
                 user.setUserId(savedUser.getId());
                 user.setRoleId(userRole.getId());
                 userRoleRepository.save(user);
+                log.info("New user with email {} registered as User.", savedUser.getEmail());
                 return new GeneralResponse(true, "New User Created");
 
             } else {
@@ -110,10 +115,12 @@ import java.util.Date;
                 user.setUserId(savedUser.getId());
                 user.setRoleId(roleRepository.findByName(Constants.User).getId());
                 userRoleRepository.save(user);
+                log.info("New user with email {} registered as User.", savedUser.getEmail());
                 return new GeneralResponse(true, "New User Created");
             }
 
         } catch (Exception e) {
+            log.error("Error occurred during user registration: {}", e.getMessage(), e);
             return new GeneralResponse(false, "Error occurred: " + e.getMessage());
         }
 
@@ -125,20 +132,23 @@ import java.util.Date;
         try {
             //Checking email
             if (loginDto.getEmail() == null) {
-
+                log.warn("Login failed. Email is required.");
                 return new LoginResponse(false, "Email Required !!!");
             }
             User user = userRepository.findByEmail(loginDto.getEmail());
             //Check if user Exist
             if (user == null) {
+                log.warn("Login failed. User with email {} does not exist.", loginDto.getEmail());
                 return new LoginResponse(false, "Oops User Doesnot Exist !!!");
             }
             // Check Password/Email
             if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+                log.warn("Login failed. Incorrect password for user with email {}.", loginDto.getEmail());
                 return new LoginResponse(false, "Try Again! Email/Password Not Valid !!!");
             }
             //Checking if User Has No Role
             if (userRoleRepository.findByUserId(user.getId()) == null) {
+                log.warn("Login failed. User with email {} does not have any role.", loginDto.getEmail());
                 return new LoginResponse(false, "Oops User Doesnot Have Any Role !!!");
             }
 
@@ -159,12 +169,13 @@ import java.util.Date;
                 refreshTokenInfo.setUserId(user.getId());
                 refreshTokenRepository.save(refreshTokenInfo);
             }
+            log.info("User with email {} logged in successfully.", user.getEmail());
 
-            return new LoginResponse(true, "Logged in Successfully !!!",jwtToken,refreshToken);
-
+            return new LoginResponse(true, "Logged in Successfully !!!", jwtToken, refreshToken);
 
 
         } catch (Exception e) {
+            log.error("Error occurred during login: {}", e.getMessage(), e);
             return new LoginResponse(false, "Error occurred: " + e.getMessage());
         }
 
@@ -173,17 +184,26 @@ import java.util.Date;
     @Override
     public UserDto getUserInfo() {
 
-            //getting logged in user info
+        try {
+            // Getting logged in user info
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            SecUser secUser = (SecUser) authentication.getPrincipal();// Get username
+            SecUser secUser = (SecUser) authentication.getPrincipal();
             User user = secUser.getUser();
             SystemRole systemRole = secUser.getUserRole();
             UserDto userDto = new UserDto();
             userDto.setDisplayName(user.getDisplayName());
             userDto.setEmail(user.getEmail());
             userDto.setRole(systemRole.getName());
+
+            log.info("User info retrieved successfully for user with email {}", user.getEmail());
             return userDto;
 
+        } catch (Exception e) {
+
+            log.error("Error occurred while retrieving user info: {}", e.getMessage(), e);
+
+            return null;
+        }
 
 
     }
@@ -194,27 +214,37 @@ import java.util.Date;
 
     @Override
     public LoginResponse refreshToken(RefreshTokenDto tokenDto) {
-        RefreshTokenInfo findToken = refreshTokenRepository.findByToken(tokenDto.getToken());
-        if (findToken == null) {
-            return new LoginResponse(false, "Invalid Refresh token ");
-        }
-        User user = userRepository.findById(findToken.getUserId());
-        if (user == null) {
-            return new LoginResponse(false, "Oops User Doesnot Exist! Refresh token cannot be generated !! ");
+        try {
+            RefreshTokenInfo findToken = refreshTokenRepository.findByToken(tokenDto.getToken());
+            if (findToken == null) {
+                log.warn("Invalid refresh token: {}", tokenDto.getToken());
+                return new LoginResponse(false, "Invalid Refresh token ");
+            }
+            User user = userRepository.findById(findToken.getUserId());
+            if (user == null) {
+                log.warn("User not found for refresh token: {}", tokenDto.getToken());
+                return new LoginResponse(false, "Oops User Doesnot Exist! Refresh token cannot be generated !! ");
+            }
+
+            String jwtToken = jwtService.generateToken(user);
+            String refreshToken = jwtService.generateRefreshToken();
+
+            RefreshTokenInfo updateRefreshToken = refreshTokenRepository.findByUserId(user.getId());
+            if (updateRefreshToken == null) {
+                log.warn("Refresh token could not be generated because user has not signed in: {}", user.getEmail());
+                return new LoginResponse(false, "Refresh token could not be generated because user has not signed in");
+            }
+            updateRefreshToken.setToken(refreshToken);
+            refreshTokenRepository.save(updateRefreshToken);
+            log.info("Token refreshed successfully for user: {}", user.getEmail());
+            return new LoginResponse(true, "Token refreshed successfully", jwtToken, refreshToken);
+        } catch (Exception e) {
+            log.error("Error occurred while refreshing token: {}", e.getMessage(), e);
+            return new LoginResponse(false, "Error occurred while refreshing token");
         }
 
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken();
 
-        RefreshTokenInfo updateRefreshToken = refreshTokenRepository.findByUserId(user.getId());
-        if (updateRefreshToken == null) {
-            return new LoginResponse(false, "Refresh token could not be generated because user has not signed in");
-        }
-        updateRefreshToken.setToken(refreshToken);
-        refreshTokenRepository.save(updateRefreshToken);
-
-        return new LoginResponse(true, "Token refreshed successfully", jwtToken, refreshToken);
-        }
     }
+}
 
 

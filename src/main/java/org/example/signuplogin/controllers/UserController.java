@@ -9,7 +9,6 @@ import org.example.signuplogin.entity.dto.LoginDto;
 import org.example.signuplogin.entity.dto.RefreshTokenDto;
 import org.example.signuplogin.entity.dto.SignupDto;
 import org.example.signuplogin.entity.dto.UserDto;
-import org.example.signuplogin.repositories.UserRepository;
 import org.example.signuplogin.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +32,7 @@ public class UserController {
 
             GeneralResponse response = userService.signup(signupDto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+
     }
 
     //User Login

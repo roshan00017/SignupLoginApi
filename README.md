@@ -89,14 +89,17 @@ Before you begin, ensure you have the following software installed on your syste
 1. Clone this repository to your local machine.
 
 2. Navigate to the project directory.
+3.  Set the appropriate location for data storage in local disk in docker compose file 
+     volumes:
+    - /home/roshang017/pgsql_data/singup_login:/var/lib/postgresql/data
 
-3. Build and start the Docker containers using Docker Compose.
+4. Build and start the Docker containers using Docker Compose.
     run this command from root of project folder
     ```bash
    docker-compose up --build -d
 
 
-4. Once the containers are up and running, the SignupLogin API will be accessible at `http://localhost:8080`.
+5. Once the containers are up and running, the SignupLogin API will be accessible at `http://localhost:8080`.
 
 
 

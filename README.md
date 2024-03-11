@@ -99,7 +99,7 @@ Before you begin, ensure you have the following software installed on your syste
    docker-compose up --build -d
 
 
-5. Once the containers are up and running, the SignupLogin API will be accessible at `http://localhost:8080`.
+5. Once the containers are up and running, the SignupLogin API will be accessible at `http://localhost:8080/swagger-ui/index.html`.
 
 
 

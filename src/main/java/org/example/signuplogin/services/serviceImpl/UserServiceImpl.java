@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -53,6 +54,7 @@ import java.util.Date;
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     @Override
     public GeneralResponse signup(SignupDto signupDto) {
         try {
@@ -117,7 +119,6 @@ import java.util.Date;
 
     }
 
-
     @Override
     public LoginResponse login(LoginDto loginDto) {
         try {
@@ -168,7 +169,6 @@ import java.util.Date;
 
     }
 
-
     @Override
     public UserDto getUserInfo() {
 
@@ -187,8 +187,10 @@ import java.util.Date;
 
     }
 
-
     //Generating refresh Token
+
+    @Transactional
+
     @Override
     public LoginResponse refreshToken(RefreshTokenDto tokenDto) {
         RefreshTokenInfo findToken = refreshTokenRepository.findByToken(tokenDto.getToken());

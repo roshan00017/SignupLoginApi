@@ -12,6 +12,8 @@ The Signup Login API provides endpoints for user registration (signup), user aut
 - User login: Authenticate users with their email and password.
 - Token generation: Generate JWT tokens for authenticated users.
 - User information retrieval: Get user details by providing a valid JWT token.
+- Generated Custom Response
+- Handled Error Globally and locally in each service method for exception
 
 ## Technologies Used
 

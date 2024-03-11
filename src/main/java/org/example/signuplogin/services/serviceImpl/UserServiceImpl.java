@@ -119,6 +119,7 @@ import java.util.Date;
 
     }
 
+    @Transactional
     @Override
     public LoginResponse login(LoginDto loginDto) {
         try {

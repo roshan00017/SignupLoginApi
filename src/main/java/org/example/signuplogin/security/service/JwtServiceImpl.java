@@ -11,6 +11,7 @@ import org.example.signuplogin.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Key;
 import java.security.SecureRandom;
@@ -40,6 +41,7 @@ import java.util.function.Function;
             Claims claims = extractAllClaims(token);
             return claims.get("email", String.class);
         }
+        @Transactional
         @Override
         public String generateToken(User user) {
             Map<String, Object> claims = new HashMap<>();
@@ -47,6 +49,8 @@ import java.util.function.Function;
             claims.put("email",user.getEmail());
             return generateToken(claims);
         }
+
+        @Transactional
 
         @Override
         public String generateRefreshToken() {

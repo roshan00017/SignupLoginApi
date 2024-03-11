@@ -1,6 +1,9 @@
 package org.example.signuplogin.ControllerTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.signuplogin.entity.SecUser;
+import org.example.signuplogin.entity.SystemRole;
+import org.example.signuplogin.entity.User;
 import org.example.signuplogin.helper.Response.GeneralResponse;
 import org.example.signuplogin.helper.Response.LoginResponse;
 import org.example.signuplogin.controllers.UserController;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,6 +27,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -64,8 +70,7 @@ public class UserControllerTest {
 
         // Then
         verify(userService, times(1)).signup(signupDto);
-        // Add more assertions based on your actual implementation and expected behavior
-        // For example, check the status code, response body, etc.
+
         assertAll(() -> {
             assertEquals(true, responseEntity.getBody().isFlag());
             assertEquals("New User Created", responseEntity.getBody().getMessage());
@@ -98,8 +103,7 @@ public class UserControllerTest {
 
         // Then
         verify(userService, times(1)).login(loginDto);
-        // Add more assertions based on your actual implementation and expected behavior
-        // For example, check the status code, response body, etc.
+
         assertAll(() -> {
             assertEquals(true, responseEntity.getBody().isFlag());
             assertEquals("Logged in Successfully !!!", responseEntity.getBody().getMessage());
@@ -108,39 +112,63 @@ public class UserControllerTest {
         });
     }
 
-//    @Test
-//    public void testGetUserInfo() throws Exception {
-//        UserDto userDto = new UserDto();
-//        userDto.setDisplayName("Test User");
-//        userDto.setEmail("test@example.com");
-//
-//        when(userService.getUserInfo()).thenReturn(userDto);
-//
-//        mockMvc.perform(get("/api/userinfo"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.displayName").value("Test User"))
-//                .andExpect(jsonPath("$.email").value("test@example.com"));
-//
-//        verify(userService, times(1)).getUserInfo();
-//    }
 
-//    @Test
-//    public void testRefreshToken() throws Exception {
-//        RefreshTokenDto refreshTokenDto = new RefreshTokenDto();
-//        refreshTokenDto.setToken("refreshToken");
-//
-//        LoginResponse expectedResponse = new LoginResponse(true, "Token refreshed successfully", "jwtToken", "refreshToken");
-//        when(userService.refreshToken(refreshTokenDto)).thenReturn(expectedResponse);
-//
-//        mockMvc.perform(post("/api/refreshtoken")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(new ObjectMapper().writeValueAsString(refreshTokenDto)))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.flag").value(true))
-//                .andExpect(jsonPath("$.message").value("Token refreshed successfully"))
-//                .andExpect(jsonPath("$.token").value("jwtToken"))
-//                .andExpect(jsonPath("$.refreshToken").value("refreshToken"));
-//
-//        verify(userService, times(1)).refreshToken(refreshTokenDto);
-//    }
+    @Test
+    public void testRefreshToken() throws Exception {
+        // Given
+        RefreshTokenDto refreshTokenDto = new RefreshTokenDto();
+        refreshTokenDto.setToken("fakeRefreshToken");
+
+        LoginResponse mockResponse = new LoginResponse(true, "Token refreshed successfully", "fakeJwtToken", "fakeRefreshToken");
+
+        when(userService.refreshToken(refreshTokenDto)).thenReturn(mockResponse);
+
+        // When
+        when(userService.refreshToken(refreshTokenDto)).thenReturn(mockResponse);
+        ResponseEntity<LoginResponse> responseEntity = userController.refreshtoken(refreshTokenDto);
+
+        // Then
+        verify(userService, times(1)).refreshToken(refreshTokenDto);
+
+        assertAll(() -> {
+            assertEquals(true, responseEntity.getBody().isFlag());
+            assertEquals("Token refreshed successfully", responseEntity.getBody().getMessage());
+            assertEquals("fakeJwtToken", responseEntity.getBody().getToken());
+            assertEquals("fakeRefreshToken", responseEntity.getBody().getRefreshToken());
+
+        });
+    }
+
+
+    @Test
+    public void testGetUserInfo() throws Exception {
+        // Given
+        UserDto mockUserDto = new UserDto();
+        mockUserDto.setDisplayName("Test User");
+        mockUserDto.setEmail("testuser@example.com");
+        mockUserDto.setRole("ADMIN");
+
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecUser secUser = Mockito.mock(SecUser.class);
+        Mockito.when(authentication.getPrincipal()).thenReturn(secUser);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Mocking the behavior of SecUser and UserService
+        Mockito.when(secUser.getUser()).thenReturn(new User());
+        Mockito.when(secUser.getUserRole()).thenReturn(new SystemRole());
+        Mockito.when(userService.getUserInfo()).thenReturn(mockUserDto);
+
+        // When
+        ResponseEntity<UserDto> responseEntity = userController.getUserInfo();
+        // Then
+        Mockito.verify(userService, Mockito.times(1)).getUserInfo();
+        // Add more assertions based on your actual implementation and expected behavior
+        // For example, check the status code, response body, etc.
+        assertAll(() -> {
+            assertEquals("Test User", responseEntity.getBody().getDisplayName());
+            assertEquals("testuser@example.com", responseEntity.getBody().getEmail());
+            assertEquals("ADMIN", responseEntity.getBody().getRole());
+            // Add assertions for additional fields as needed
+        });
+    }
 }

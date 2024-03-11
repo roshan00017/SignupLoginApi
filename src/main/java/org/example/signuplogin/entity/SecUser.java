@@ -25,14 +25,7 @@ public class SecUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-//        // Assuming you have a method to retrieve role IDs based on user ID
-//        UserRole userRoles = userRoleRepository.findByUserId(user.getId());
-//
-//
-//        // Assuming you have a method to retrieve role names based on role IDs
-//        SystemRole roleName = roleRepository.findById(userRoles.getRoleId());
-//
-//        // Convert role names to GrantedAuthority objects
+
 
             return List.of(new SimpleGrantedAuthority(this.userRole.getName()));
 

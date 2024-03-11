@@ -81,27 +81,32 @@ public class UserControllerTest {
     }
 
 
+    @Test
+    public void testLogin() throws Exception {
+        // Given
+        LoginDto loginDto = new LoginDto();
+        loginDto.setEmail("testuser@example.com");
+        loginDto.setPassword("password123");
 
-//    @Test
-//    public void testLogin() throws Exception {
-//        LoginDto loginDto = new LoginDto();
-//        loginDto.setEmail("test@example.com");
-//        loginDto.setPassword("testpassword");
-//
-//        LoginResponse expectedResponse = new LoginResponse(true, "Logged in Successfully !!!", "jwtToken", "refreshToken");
-//        when(userService.login(loginDto)).thenReturn(expectedResponse);
-//
-//        mockMvc.perform(post("/api/login")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(new ObjectMapper().writeValueAsString(loginDto)))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.flag").value(true))
-//                .andExpect(jsonPath("$.message").value("Logged in Successfully !!!"))
-//                .andExpect(jsonPath("$.token").value("jwtToken"))
-//                .andExpect(jsonPath("$.refreshToken").value("refreshToken"));
-//
-//        verify(userService, times(1)).login(loginDto);
-//    }
+        LoginResponse mockResponse = new LoginResponse(true, "Logged in Successfully !!!", "fakeJwtToken", "fakeRefreshToken");
+
+        when(userService.login(loginDto)).thenReturn(mockResponse);
+
+        ResponseEntity<LoginResponse> responseEntity = userController.login(loginDto);
+
+
+
+        // Then
+        verify(userService, times(1)).login(loginDto);
+        // Add more assertions based on your actual implementation and expected behavior
+        // For example, check the status code, response body, etc.
+        assertAll(() -> {
+            assertEquals(true, responseEntity.getBody().isFlag());
+            assertEquals("Logged in Successfully !!!", responseEntity.getBody().getMessage());
+            assertEquals("fakeJwtToken", responseEntity.getBody().getToken());
+            assertEquals("fakeRefreshToken", responseEntity.getBody().getRefreshToken());
+        });
+    }
 
 //    @Test
 //    public void testGetUserInfo() throws Exception {

@@ -197,11 +197,8 @@ import java.util.Date;
 
             log.info("User info retrieved successfully for user with email {}", user.getEmail());
             return userDto;
-
         } catch (Exception e) {
-
             log.error("Error occurred while retrieving user info: {}", e.getMessage(), e);
-
             return null;
         }
 
@@ -242,7 +239,6 @@ import java.util.Date;
             log.error("Error occurred while refreshing token: {}", e.getMessage(), e);
             return new LoginResponse(false, "Error occurred while refreshing token");
         }
-
 
     }
 }

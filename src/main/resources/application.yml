@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: ${db-url:jdbc:postgresql://localhost:5432/apiDB}
+    username: ${db-username:root}
+    password: ${db-password:root}
+    driver-class-name: org.postgresql.Driver
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    url: ${db-url:jdbc:postgresql://localhost:5432/apiDB}
+    password: ${db-username:root}
+    user: ${db-password:root}
+    locations: classpath:db/migration/postgresql
+
+web:
+  cors:
+    allowed-origins: "http://localhost:3000"
+    allowed-methods: GET, POST, PATCH, PUT, DELETE, OPTIONS, HEAD
+    max-age: 3600
+    allowed-headers: "Requestor-Type"
+    exposed-headers: "X-Get-Header"
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "289048981423-l3u56222hquksvi8e8muml6tt9harhca.apps.googleusercontent.com"
+            client-secret: "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"
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: "Google"
+            scope:
+              - "email"
+              - "profile"
+              - "address"
+              - "phone"
+        provider:
+          google:
+            authorization-uri: "https://accounts.google.com/o/oauth2/auth"
+            token-uri: "https://oauth2.googleapis.com/token"
+            user-info-uri: "https://www.googleapis.com/oauth2/v3/userinfo"
+            jwk-set-uri: "https://www.googleapis.com/oauth2/v3/certs"
+
+token:
+  signing:
+    key: "eyJhbGciOiJIUzI1NiJ9ew0KICAic3ViIjogIjEyMzQ1Njc4OTAiLA0KICAibmFtZSI6ICJSb3NoYW4gR3lhd2FsaSIsDQogICJpYXQiOiAxNTE2MjM5MDIyDQp9KwtpiRYr8NEdrXHCnOgpk0GHTTmwaWEjPdqmYvLjtyM"
